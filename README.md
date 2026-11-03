@@ -6,16 +6,6 @@
 
 설치나 빌드 없이 저장소 루트의 `index.html`, `styles.css`, `app.js`, `config.example.js`를 함께 올리면 됩니다. GitHub Pages는 기본 브랜치의 `/ (root)`를 게시 소스로 선택하세요.
 
-## Supabase 데이터베이스 연결
-
-1. Supabase에서 새 프로젝트를 만듭니다.
-2. **SQL Editor**에서 [`database/schema.sql`](database/schema.sql) 전체를 실행합니다. 이 스키마는 사용자별 `user_id`와 RLS 정책을 적용해 로그인한 사용자가 자기 단어만 읽고 변경하게 합니다.
-3. Supabase 프로젝트 URL과 **publishable** 키(또는 legacy `anon` 키)를 `config.example.js`의 `supabaseUrl`, `supabaseAnonKey`에 넣습니다. 이 공개 키는 브라우저에서 쓰도록 만든 키이며, `service_role` 키는 절대 넣지 마세요.
-4. Supabase **Authentication → URL Configuration**에서 배포 사이트 URL을 허용하고 이메일/비밀번호 로그인을 켭니다.
-5. 파일을 GitHub에 올리고 Pages에 게시합니다. 각 사용자는 이메일과 비밀번호로 회원가입하고 로그인합니다.
-
-Supabase 프로젝트 URL과 publishable/anon 키는 브라우저에 공개되는 설정입니다. 실제 접근 제한은 데이터베이스의 RLS 정책이 담당합니다. SQL 스키마를 실행하지 않았거나 설정 값이 잘못되면 로그인 대신 설정 안내가 표시됩니다.
-
 ## 주요 기능
 
 - 오늘의 기억, 내 단어, 다시 볼 단어를 각각 별도 화면으로 제공
