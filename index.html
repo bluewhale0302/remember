@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f7f3">
+  <title>어렴풋 — 잊힌 단어를 다시 찾는 곳</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="auth-gate" id="authGate">
+    <section class="auth-card">
+      <a class="brand auth-brand" href="#"><span class="brand-mark">✳</span><span>어렴풋<small>THE WORD YOU ALMOST REMEMBER</small></span></a>
+      <div id="setupNotice" class="setup-notice" hidden><strong>데이터베이스 연결이 필요해요</strong><p>Supabase 프로젝트 URL과 공개 키를 <code>config.example.js</code>에 넣고, <code>database/schema.sql</code>을 SQL Editor에서 실행해 주세요.</p><a href="README.md" target="_blank">설정 방법 보기 ↗</a></div>
+      <form id="authForm">
+        <h1 id="authTitle">로그인</h1><p class="auth-copy">계정에 저장한 단어는 나만 볼 수 있어요.</p>
+        <label class="auth-field">이메일<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label class="auth-field">비밀번호<input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="8자 이상"></label>
+        <button class="auth-submit" id="authSubmit" type="submit">로그인</button>
+        <button class="auth-switch" id="authSwitch" type="button">계정이 없나요? 회원가입</button>
+        <button class="auth-switch" id="resetPassword" type="button">비밀번호 재설정 메일 보내기</button>
+        <p class="auth-status" id="authStatus" role="status"></p>
+      </form>
+    </section>
+  </main>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#today" aria-label="어렴풋 오늘의 기억"><span class="brand-mark">✳</span><span>어렴풋<small>THE WORD YOU ALMOST REMEMBER</small></span></a>
+      <div class="top-right"><button class="text-button" id="dictionarySettings">사전 설정</button><span id="todayDate"></span><span id="accountEmail" class="account-email"></span><button class="text-button" id="signOut">로그아웃</button><span class="avatar">ㄷ</span></div>
+    </header>
+    <div class="layout">
+      <aside class="sidebar">
+        <p class="nav-label">YOUR SPACE</p>
+        <nav class="nav" aria-label="주 메뉴">
+          <button class="nav-item active" data-page="today"><span>⌂</span>오늘의 기억</button>
+          <button class="nav-item" data-page="words"><span>▤</span>내 단어 <b id="wordCount">0</b></button>
+          <button class="nav-item" data-page="review"><span>↻</span>다시 볼 단어 <b id="reviewCount">0</b></button>
+        </nav>
+        <div class="side-card"><span class="spark">✦</span><strong>잊어버린 것도 기록이에요</strong><p>떠오르지 않았던 순간과 다시 찾아낸 단어를 함께 모아보세요.</p></div>
+        <div class="side-stat"><span>이번 주에 찾은 단어</span><strong id="weekCount">0</strong></div>
+      </aside>
+      <main class="main">
+        <div class="migration-banner" id="migrationBanner" hidden><span>이 브라우저에 예전 단어 기록이 있어요. 현재 계정으로 가져올까요?</span><button class="quiet-button" id="importOldWords">기존 단어 가져오기</button><button class="text-button" id="dismissImport">나중에</button></div>
+        <section class="page active" id="page-today">
+          <p class="greeting">안녕하세요, 두드림님 👋</p>
+          <div class="headline"><h1>머릿속에 맴도는 단어가 있나요?</h1><span class="long-date" id="longDate"></span></div>
+          <section class="search-card">
+            <div class="search-label">기억의 조각으로 찾아보기 <span>정확한 단어가 아니어도 괜찮아요</span></div>
+            <div class="search-box"><span class="search-icon">⌕</span><input id="searchInput" placeholder="예: 문득 생각나는, 기분이 가라앉는..." autocomplete="off"><span class="shortcut">ENTER</span></div>
+            <div class="chips"><span>이런 단서로도 찾아봐요</span><button class="chip" data-query="오랜만에 만나 반가운">상황으로</button><button class="chip" data-query="기분이 가라앉는">느낌으로</button><button class="chip" data-query="자꾸 헷갈리는">헷갈리는 단어</button></div>
+            <div class="search-results" id="searchResults"></div>
+          </section>
+          <div class="section-head recent-head"><div><h2>최근에 찾은 단어 <span>다시 헤매지 않도록</span></h2></div><button class="text-button" data-goto="words">전체 보기 ↗</button></div>
+          <div class="word-list recent-list" id="recentList"></div>
+        </section>
+        <section class="page" id="page-words">
+          <div class="page-heading"><div><p class="greeting">MY WORDS</p><h1>내 단어</h1><p class="page-description">기억의 조각을 모아두고 필요할 때 다시 찾아보세요.</p></div><button class="primary-button" id="addWordTop">＋ 단어 기록하기</button></div>
+          <div class="toolbar"><label class="select-all"><input type="checkbox" id="selectAll"><span>전체 선택</span></label><span id="selectedCount" class="selected-count">선택한 단어 0개</span><div class="toolbar-actions"><button class="quiet-button" id="deleteSelected" disabled>선택 삭제</button><button class="danger-button" id="deleteAll">전체 삭제</button></div></div>
+          <div class="word-list all-list" id="allList"></div>
+        </section>
+        <section class="page" id="page-review">
+          <div class="page-heading"><div><p class="greeting">A LITTLE MEMORY CHECK</p><h1>다시 볼 단어</h1><p class="page-description">단서를 보고 단어를 떠올려보세요. 짧게 반복할수록 더 잘 기억나요.</p></div></div>
+          <div class="review-wrap" id="reviewList"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <button class="fab" id="addWord"><span>＋</span> 단어 기록하기</button>
+  <div class="modal-back" id="wordModal" aria-hidden="true"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head"><div><h2 id="modalTitle">기억의 조각 남기기</h2><p>단어를 입력하면 사전에서 뜻과 예문을 찾아와요.</p></div><button class="close-button" data-close="wordModal" aria-label="닫기">×</button></div>
+    <form id="wordForm">
+      <div class="field"><label for="wordInput">찾아낸 단어</label><div class="input-with-status"><input id="wordInput" required placeholder="예: 데자뷔" autocomplete="off"><span id="dictionaryStatus" class="field-status"></span></div><div id="dictionaryChoices" class="dictionary-choices"></div></div>
+      <div class="field"><label for="clueInput">어떤 단서로 기억했나요?</label><textarea id="clueInput" placeholder="예: 처음 겪는 일인데 이미 겪은 것 같은 느낌"></textarea></div>
+      <div class="field"><label for="meaningInput">뜻과 쓰임새 <span class="auto-label">사전 자동 입력</span></label><textarea id="meaningInput" placeholder="단어를 입력하면 사전에서 자동으로 가져와요"></textarea></div>
+      <div class="field-row"><div class="field"><label for="exampleInput">예문</label><textarea id="exampleInput" class="short-textarea" placeholder="사전 예문이 자동으로 입력돼요"></textarea></div><div class="field"><label for="posInput">품사·분류</label><input id="posInput" placeholder="예: 명사"></div></div>
+      <div class="field"><label for="confusedInput">헷갈렸던 단어</label><input id="confusedInput" placeholder="예: 기시감"></div>
+      <div class="field"><label for="differenceInput">두 단어의 차이</label><textarea id="differenceInput" placeholder="어떤 점이 다르고, 언제 쓰는지"></textarea></div>
+      <button class="save-button" id="saveWord" type="submit">기억 저장하기　↗</button>
+    </form>
+  </section></div>
+  <div class="modal-back" id="settingsModal" aria-hidden="true"><section class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-head"><div><h2 id="settingsTitle">사전 자동 입력 설정</h2><p>국립국어원 한국어기초사전에서 뜻과 예문을 불러옵니다.</p></div><button class="close-button" data-close="settingsModal" aria-label="닫기">×</button></div>
+    <label class="field"><span class="field-label">오픈 API 인증키</span><input id="apiKeyInput" type="password" placeholder="32자리 인증키"></label>
+    <p class="settings-note">인증키는 <a href="https://krdict.korean.go.kr/kor/openApi/openApiInfo" target="_blank" rel="noreferrer">한국어기초사전 오픈 API</a>에서 발급받을 수 있어요. 이 키는 현재 브라우저에만 저장됩니다. 공개 저장소에 키를 직접 적어 올리지 마세요.</p>
+    <div class="settings-actions"><button class="quiet-button" id="clearApiKey">키 삭제</button><button class="save-button" id="saveApiKey">인증키 저장</button></div>
+  </section></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="config.example.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
